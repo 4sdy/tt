@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+        }
+
+        .video-container {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .scroll-container {
+            height: 1000vh; /* Controls scroll length */
+        }
+
+        video {
+            width: 100%;
+            height: 100vh;
+            object-fit: cover;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-family: Arial, sans-serif;
+            display: none;
+        }
+    </style>
+
+    <!-- Load GSAP and ScrollTrigger from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+</head>
+<body>
+    <div class="loading" id="loading">Loading video...</div>
+    
+    <div class="scroll-container">
+        <div class="video-container">
+            <video id="scrollVideo" muted playsinline>
+                <source src="https://raw.githubusercontent.com/4sdy/tt/main/viranda-brand-vid-v2-comp.mp4" type="video/mp4">
+            </video>
+        </div>
+    </div>
+
+    <script>
+        // Register ScrollTrigger with GSAP
+        gsap.registerPlugin(ScrollTrigger);
+
+        const video = document.getElementById('scrollVideo');
+        const loading = document.getElementById('loading');
+
+        // Show loading message
+        loading.style.display = 'block';
+
+        // Wait for video to be ready
+        video.addEventListener('loadedmetadata', () => {
+            // Hide loading message
+            loading.style.display = 'none';
+
+            // Pause the video initially
+            video.pause();
+
+            // Create the scroll-triggered animation
+            gsap.to(video, {
+                scrollTrigger: {
+                    trigger: ".scroll-container",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1, // Adjust this value for smoothness (1 = smoother, 0.5 = more responsive)
+                    pin: false, // Video is already sticky with CSS
+                    invalidateOnRefresh: true,
+                    onUpdate: self => {
+                        // Ensures video playback is frame-perfect
+                        if (!video.seeking) {
+                            video.currentTime = self.progress * video.duration;
+                        }
+                    }
+                }
+            });
+        });
+
+        // Optional: Preload frames
+        video.addEventListener('loadedmetadata', () => {
+            video.currentTime = 0;
+            video.play().then(() => {
+                video.pause();
+                video.currentTime = 0;
+            });
+        });
+    </script>
+</body>
+</html>
